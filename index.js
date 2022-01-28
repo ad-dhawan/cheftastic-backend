@@ -4,10 +4,13 @@ const admin = require("firebase-admin");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
+//ROUTE IMPORTS
+const authRoute = require("./src/routes/auth");
+
 //CONFIGURATION
 dotenv.config();
 
-//DB CONNECT
+//DATABASE CONNECT
 mongoose.connect(process.env.DATABASE_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -18,6 +21,9 @@ mongoose.connect(process.env.DATABASE_URL, {
 
 //MIDDLEWARE
 app.use(express.json());
+
+//ROUTE MIDDLEWARE
+app.use("/api/auth", authRoute);
 
 app.listen(process.env.PORT || 3000, function(){
   console.log(`Server listening on port ${this.address().port} in ${app.settings.env} mode`);
