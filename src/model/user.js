@@ -8,6 +8,9 @@ const UserSchema = mongoose.Schema({
     name: {
         type: String,
         required: true
+    },
+    recipes: {
+        type: Number,
     }
 },{timestamps:true});
 

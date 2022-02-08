@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 
 //ROUTE IMPORTS
 const authRoute = require("./src/routes/auth");
+const postRoute = require("./src/routes/post");
 
 //CONFIGURATION
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(express.json());
 
 //ROUTE MIDDLEWARE
 app.use("/api/auth", authRoute);
+app.use("/api/post", postRoute);
 
 app.listen(process.env.PORT || 3000, function(){
   console.log(`Server listening on port ${this.address().port} in ${app.settings.env} mode`);
