@@ -1,8 +1,7 @@
 const router = require("express").Router();
 const PostSchema = require('../model/post');
-const UserSchema = require('../model/user');
 
-//MAKE POST
+/** CREATE POST */
 router.post("/create", async (req, res) => {
 
     const post = new PostSchema({
@@ -18,7 +17,9 @@ router.post("/create", async (req, res) => {
             dislikes: 0,
         },
         chef_details: {
-            chef_id: req.body.chef_id
+            chef_id: req.body.chef_id,
+            chef_name: req.body.chef_name || null,
+            chef_image_url: req.body.chef_image_url || null
         }
     });
 
@@ -26,6 +27,18 @@ router.post("/create", async (req, res) => {
         const newPost = await post.save();
         res.status(200).json({status: 200, message: "Post Created", recipe_data: newPost});
     } catch(err) { 
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err });
+    }
+});
+
+/** GET ALL POSTS */
+router.get('/get_all', (req, res) => {
+    try{
+        PostSchema.find({}, function(err, posts){
+            if(err) res.status(502).json({error: err});
+            else res.status(200).json(posts)
+        })
+    } catch(err){
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err });
     }
 });
