@@ -1,12 +1,30 @@
+const express = require("express");
+const app = express();
 const router = require("express").Router();
+const multer = require('multer');
 const PostSchema = require('../model/post');
 const UserSchema = require('../model/user');
 
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, './uploads/posts');
+    },
+    filename: function(req, file, cb) {
+        cb(null, new Date().toISOString() + '_' + file.originalname.replace(/ /g,"_"));
+    }
+});
+
+const upload = multer({ storage: storage })
+
 /** CREATE POST */
-router.post("/create", async (req, res) => {
+router.post("/create", upload.single('meal_image'), async (req, res) => {
+    let imageUrl;
+    if(app.settings.env === 'development')
+        imageUrl = `http://localhost:3000/${req.file.path}`
+    
     const post = new PostSchema({
         meal_name: req.body.meal_name,
-        image_url: req.body.image_url,
+        image_url: imageUrl,
         ingredients: req.body.ingredients,
         recipe: req.body.recipe,
         cuisine: req.body.cuisine || null,
@@ -25,9 +43,9 @@ router.post("/create", async (req, res) => {
         const user = await UserSchema.findOne({ _id: req.body.chef_id })
         await user.updateOne({ $set : { recipes: user.recipes+=1 } })
 
-        res.status(200).json({status: 200, message: "Post Created", recipe_data: newPost});
+        res.status(200).json(newPost);
     } catch(err) { 
-        res.status(500).json({ status: 500, message: "Internal Server Error", error: err });
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
 });
 
