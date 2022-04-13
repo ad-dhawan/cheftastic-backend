@@ -1,28 +1,16 @@
 const mongoose = require('mongoose');
 
 const PostSchema = mongoose.Schema({
-    meal_name: {
-        type: String,
-        required: true
-    },
-    image_url: {
-        type: String,
-        required: true
-    },
+    meal_name: String,
+    image_url: String,
     ingredients: [String],
     recipe: [String],
     cuisine: String,
-    meal_type: {
-        type: String,
-        required: true
-    },
+    meal_type: String,
     meal_video_url: String,
-    likes: Number,
-    dislikes: Number,
-    chef_id: {
-        type: String,
-        required: true
-    },
+    likes: [],
+    dislikes: [],
+    chef_id: String,
     chef_name: String,
     chef_image_url: String
 },{timestamps:true});

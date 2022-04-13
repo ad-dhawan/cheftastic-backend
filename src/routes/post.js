@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
         cb(null, './uploads/posts');
     },
     filename: function(req, file, cb) {
-        cb(null, new Date().toISOString() + '_' + file.originalname.replace(/ /g,"_"));
+        cb(null, 'cheftastic' + '_' + req.chef_id);
     }
 });
 
@@ -40,8 +40,8 @@ router.post("/create", upload.single('meal_image'), async (req, res) => {
     try{
         const newPost = await post.save();
 
-        const user = await UserSchema.findOne({ _id: req.body.chef_id })
-        await user.updateOne({ $set : { recipes: user.recipes+=1 } })
+        // const user = await UserSchema.findOne({ _id: req.body.chef_id })
+        // await user.updateOne({ $set : { recipes: user.recipes+=1 } })
 
         res.status(200).json(newPost);
     } catch(err) { 
