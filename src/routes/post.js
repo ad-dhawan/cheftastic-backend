@@ -73,14 +73,19 @@ router.post("/create", upload.single('meal_image'), async (req, res) => {
 /** GET ALL POSTS */
 router.get('/get_all', (req, res) => {
     try{
-        let{page_size, marker_id, pull_refresh} = req.query
+        let{page_size, marker_id, fetch_data} = req.query
 
         if(!page_size)
             page_size = 10;
 
         let markerIdObject;
         if(!marker_id) markerIdObject = {}
-        else markerIdObject = { _id: { $lt: marker_id } }
+        else {
+            if(!fetch_data)
+                markerIdObject = { _id: { $lt: marker_id } }
+            else if(fetch_data = "pull_refresh")
+                markerIdObject = { _id: { $gt: marker_id } }  
+        }
 
         PostSchema.find( markerIdObject, function(err, posts){
             if(err) res.status(502).json({error: err.toString})
