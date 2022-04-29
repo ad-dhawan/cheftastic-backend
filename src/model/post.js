@@ -9,10 +9,10 @@ const PostSchema = mongoose.Schema({
     meal_type: String,
     meal_video_url: String,
     likes: [],
-    dislikes: [],
-    chef_id: String,
-    chef_name: String,
-    chef_image_url: String
+    user_id: String,
+    user_name: String,
+    user_avatar: String,
+    user_token: String
 },{timestamps:true});
 
 module.exports = mongoose.model('post', PostSchema);

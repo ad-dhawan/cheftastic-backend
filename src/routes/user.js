@@ -12,8 +12,10 @@ router.post("/register", async (req, res) => {
         const user = new UserSchema({
             email: req.body.email,
             name: req.body.name,
-            recipes: 0,
-            user_type: req.body.user_type
+            fcm_token: req.body.user_token,
+            recipes:[],
+            user_avatar: req.body.user_avatar,
+            id_token: req.body.id_token
         });
 
         try{
@@ -41,8 +43,18 @@ router.get('/get_all', (req, res) => {
 router.get('/get/:id', async (req, res) => {
     try{
         const user = await UserSchema.findOne({ _id: req.params.id })
-        res.status(200).json(user)
+        res.status(200).json({  _id: user._id, email: user.email, name: user.name, recipes: user.recipes.length, user_avatar: user.user_avatar  })
     } catch(err) {
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+    }
+})
+
+/** GET USER RECIPES */
+router.get('/get_user_recipes/:id', async(req, res) => {
+    try{
+        const user = await UserSchema.findOne({ _id: req.params.id })
+        res.status(200).json(user.recipes)
+    } catch (err) {
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
 })
