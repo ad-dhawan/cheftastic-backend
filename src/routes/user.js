@@ -6,7 +6,7 @@ router.post("/register", async (req, res) => {
 
     //CHECK USER EXISTENCE
     const userExist = await UserSchema.findOne({ email: req.body.email });
-    if (userExist) return res.status(409).json(userExist);
+    if (userExist) return res.status(409).json({status: 409, user: userExist});
     else {
         //CREATE NEW USER
         const user = new UserSchema({
