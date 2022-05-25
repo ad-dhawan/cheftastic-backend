@@ -81,9 +81,9 @@ router.get('/get_all', (req, res) => {
         let markerIdObject;
         if(!marker_id) markerIdObject = {}
         else {
-            if(!fetch_data)
+            if(fetch_data == "load_more")
                 markerIdObject = { _id: { $lt: marker_id } }
-            else if(fetch_data = "pull_refresh")
+            else if(fetch_data == "pull_refresh")
                 markerIdObject = { _id: { $gt: marker_id } }  
         }
 

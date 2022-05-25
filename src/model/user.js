@@ -5,7 +5,7 @@ const UserSchema = mongoose.Schema({
     name: String,
     recipes: [],
     user_avatar: String,
-    user_token: String,
+    fcm_token: String,
     id_token: String
 },{timestamps:true});
 
