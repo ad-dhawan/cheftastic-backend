@@ -60,9 +60,13 @@ router.post("/create", upload.single('image_url'), async (req, res) => {
     });
 
     try{
-        await user.updateOne({ $push : { recipes: post } })
-        
         const newPost = await post.save();
+        
+        await user.updateOne({ $push : { recipes: {
+            _id: newPost._id,
+            meal_name: newPost.meal_name,
+            image_url: newPost.image_url
+        } } })
 
         res.status(200).json(newPost);
     } catch(err) { 
@@ -130,12 +134,15 @@ router.delete('/delete/:id', async(req, res) => {
 router.put('/like/:id', async(req, res) => {
     try{
         const post = await PostSchema.findOne({ _id: req.params.id })
+        const user = await UserSchema.findOne({ _id: req.body.user_id })
 
         if (!post.likes.includes(req.body.user_id)) {
 
             await post.updateOne({ $push: {likes: req.body.user_id}})
+            res.status(200).json({ message: "liked" })
             const notification = await sendNotification("Someone liked your post", "click to check", post.user_token);
-            res.status(200).json({ message: "liked", notification: notification })
+
+            await user.updateOne({ $push : { notifications: { $each: [notification], $position: 0 } } })
 
         } else {
 
@@ -150,5 +157,24 @@ router.put('/like/:id', async(req, res) => {
 })
 
 /** GET TOP LIKED POSTS */
+router.get('/get_top', (req, res) => {
+    try{
+        PostSchema.aggregate([
+            // { $unwind: "$likes" },
+            { $project: {
+                meal_name: "$meal_name",
+                likeCount: { $size: "$likes" },
+            }},
+            { $group: { _id: "$_id", totalLikes: { $sum: "$likeCount" } } },
+            { $sort: { "likeCount": 1 } },
+            { $limit: 2 },
+          ], function(err, posts) {
+              if(err) res.status(502).json({error: err.toString()})
+              else res.status(200).json(posts)
+          })
+    } catch(err){
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+    }
+})
 
 module.exports = router;

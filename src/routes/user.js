@@ -15,7 +15,9 @@ router.post("/register", async (req, res) => {
             fcm_token: req.body.fcm_token,
             recipes:[],
             user_avatar: req.body.user_avatar,
-            id_token: req.body.id_token
+            fcm_token: req.body.fcm_token,
+            id_token: req.body.id_token,
+            notifications: [],
         });
 
         try{
@@ -70,5 +72,34 @@ router.delete('/delete/:id', async(req, res) => {
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
 });
+
+/** GET USER NOTIFICATIONS */
+router.get('/get_notification/:id', async (req, res) => {
+    try{
+        let{page_size, marker_id, fetch_data} = req.query
+
+        if(!page_size)
+            page_size = 15;
+
+        let markerIdObject;
+        if(!marker_id) markerIdObject = {}
+
+        else {
+            if(fetch_data == "load_more")
+                markerIdObject = { _id: { $lt: marker_id } }
+            else if(fetch_data == "pull_refresh")
+                markerIdObject = { _id: { $gt: marker_id } }  
+        }
+
+        const user = await UserSchema.findOne({ _id: req.params.id })
+            .sort( { createdAt: -1 } )
+            .limit( parseInt(page_size) ) ;
+
+        res.status(200).json(user.notifications)
+
+    } catch(err){
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+    }
+})
 
 module.exports = router;
