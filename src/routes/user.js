@@ -12,7 +12,6 @@ router.post("/register", async (req, res) => {
         const user = new UserSchema({
             email: req.body.email,
             name: req.body.name,
-            fcm_token: req.body.fcm_token,
             recipes:[],
             user_avatar: req.body.user_avatar,
             fcm_token: req.body.fcm_token,
