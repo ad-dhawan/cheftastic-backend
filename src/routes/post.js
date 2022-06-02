@@ -6,14 +6,14 @@ const PostSchema = require('../model/post');
 const UserSchema = require('../model/user');
 const admin = require("firebase-admin");
 
-async function sendNotification(title, body, imageUrl, token) {
+function sendNotification(title, body, type, imageUrl, token) {
     try {
 
-        const notification = await admin.messaging().send({
+        const notification = admin.messaging().send({
             notification: {
                 title,
                 body,
-                imageUrl
+                imageUrl,
             },
             token
         })
@@ -138,12 +138,22 @@ router.put('/like/:id', async(req, res) => {
         if (!post.likes.includes(req.body.user_id)) {
 
             await post.updateOne({ $push: {likes: req.body.user_id}})
+
+            const notificationTitle = 'Woah!!';
+            const notificationBody = 'People are liking your recipe ❤️'
             
-            const notification = await sendNotification("Someone liked your post", "click to check", post.image_url, user.fcm_token);
+            await sendNotification(notificationTitle, notificationBody, "like", post.image_url, user.fcm_token);
 
-            res.status(200).json({ message: "liked", notification: notification })
+            const notificationData = {
+                title: notificationTitle,
+                body: notificationBody,
+                image_url: post.image_url,
+                type: 'like'
+            }
 
-            await user.updateOne({ $push : { notifications: { $each: [notification], $position: 0 } } })
+            res.status(200).json({ message: "liked", notification: notificationData })
+
+            await user.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } })
 
         } else {
 
