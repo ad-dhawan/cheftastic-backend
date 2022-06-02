@@ -150,7 +150,8 @@ router.put('/like/:id', async(req, res) => {
                 title: notificationTitle,
                 body: notificationBody,
                 image_url: post.image_url,
-                type: 'like'
+                type: 'like',
+                createdAt: Date.now()
             }
 
             res.status(200).json({ message: "liked", notification: notificationData })
