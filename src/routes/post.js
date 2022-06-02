@@ -135,6 +135,8 @@ router.put('/like/:id', async(req, res) => {
         const post = await PostSchema.findOne({ _id: req.params.id })
         const user = await UserSchema.findOne({ _id: req.body.user_id })
 
+        const notificationUser = await UserSchema.findOne({ _id: post.user_id })
+
         if (!post.likes.includes(req.body.user_id)) {
 
             await post.updateOne({ $push: {likes: req.body.user_id}})
@@ -142,7 +144,7 @@ router.put('/like/:id', async(req, res) => {
             const notificationTitle = 'Woah!!';
             const notificationBody = 'People are liking your recipe ❤️'
             
-            await sendNotification(notificationTitle, notificationBody, "like", post.image_url, user.fcm_token);
+            await sendNotification(notificationTitle, notificationBody, "like", post.image_url, notificationUser.fcm_token);
 
             const notificationData = {
                 title: notificationTitle,
