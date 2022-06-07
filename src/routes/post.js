@@ -5,6 +5,7 @@ const multer = require('multer');
 const PostSchema = require('../model/post');
 const UserSchema = require('../model/user');
 const admin = require("firebase-admin");
+const crypto = require("crypto");
 
 function sendNotification(title, body, type, imageUrl, token) {
     try {
@@ -147,6 +148,7 @@ router.put('/like/:id', async(req, res) => {
             await sendNotification(notificationTitle, notificationBody, "like", post.image_url, notificationUser.fcm_token);
 
             const notificationData = {
+                _id: crypto.randomBytes(16).toString("hex"),
                 title: notificationTitle,
                 body: notificationBody,
                 image_url: post.image_url,
@@ -170,7 +172,7 @@ router.put('/like/:id', async(req, res) => {
     }
 })
 
-/** GET TOP LIKED POSTS */
+/** GET SPECIALS POSTS */
 router.get('/get_top', (req, res) => {
     try{
         PostSchema.aggregate([
@@ -179,9 +181,9 @@ router.get('/get_top', (req, res) => {
                 meal_name: "$meal_name",
                 likeCount: { $size: "$likes" },
             }},
-            { $group: { _id: "$_id", totalLikes: { $sum: "$likeCount" } } },
-            { $sort: { "likeCount": 1 } },
-            { $limit: 2 },
+            { $group: { _id: "$_id", posts: { $push: "$_id" } } },
+            { $sort: { "likeCount": -1 } },
+            { $limit: 5 },
           ], function(err, posts) {
               if(err) res.status(502).json({error: err.toString()})
               else res.status(200).json(posts)
