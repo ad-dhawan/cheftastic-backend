@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const UserSchema = require('../model/user');
+const PostSchema = require('../model/post');
 
 //REGISTER USER
 router.post("/register", async (req, res) => {
@@ -12,7 +13,6 @@ router.post("/register", async (req, res) => {
         const user = new UserSchema({
             email: req.body.email,
             name: req.body.name,
-            recipes:[],
             user_avatar: req.body.user_avatar,
             fcm_token: req.body.fcm_token,
             id_token: req.body.id_token,
@@ -53,8 +53,10 @@ router.get('/get/:id', async (req, res) => {
 /** GET USER RECIPES */
 router.get('/get_user_recipes/:id', async(req, res) => {
     try{
-        const user = await UserSchema.findOne({ _id: req.params.id })
-        res.status(200).json(user.recipes)
+        PostSchema.find( {user_id: req.params.id}, function(err, posts){
+            if(err) res.status(502).json({error: err.toString})
+            else res.status(200).json(posts)
+        }).sort( { createdAt: -1 } )
     } catch (err) {
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
@@ -75,26 +77,10 @@ router.delete('/delete/:id', async(req, res) => {
 /** GET USER NOTIFICATIONS */
 router.get('/get_notification/:id', async (req, res) => {
     try{
-        let{page_size, marker_id, fetch_data} = req.query
-
-        if(!page_size)
-            page_size = 15;
-
-        let markerIdObject;
-        if(!marker_id) markerIdObject = {}
-
-        else {
-            if(fetch_data == "load_more")
-                markerIdObject = { _id: { $lt: marker_id } }
-            else if(fetch_data == "pull_refresh")
-                markerIdObject = { _id: { $gt: marker_id } }  
-        }
-
-        const user = await UserSchema.findOne({ _id: req.params.id })
-            .sort( { createdAt: -1 } )
-            .limit( parseInt(page_size) ) ;
-
-        res.status(200).json(user.notifications)
+        UserSchema.findOne({_id: req.params.id}, function(err, user){
+            if(err) res.status(502).json({error: err.toString})
+            else res.status(200).json(user.notifications)
+        })
 
     } catch(err){
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
