@@ -158,7 +158,7 @@ router.put('/like/:id', async(req, res) => {
 
             res.status(200).json({ message: "liked", notification: notificationData })
 
-            await user.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } })
+            await notificationUser.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } })
 
         } else {
 
