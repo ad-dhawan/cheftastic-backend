@@ -134,7 +134,6 @@ router.delete('/delete/:id', async(req, res) => {
 router.put('/like/:id', async(req, res) => {
     try{
         const post = await PostSchema.findOne({ _id: req.params.id })
-        const user = await UserSchema.findOne({ _id: req.body.user_id })
 
         const notificationUser = await UserSchema.findOne({ _id: post.user_id })
 
@@ -152,13 +151,22 @@ router.put('/like/:id', async(req, res) => {
                 title: notificationTitle,
                 body: notificationBody,
                 image_url: post.image_url,
+                meal_name: post.meal_name,
+                meal_id: post._id,
                 type: 'like',
-                createdAt: Date.now()
+                seen: false,
+                createdAt: new Date().toISOString()
+            }
+            
+            const notificationIndex = await notificationUser.notifications.findIndex(item => item.meal_id.toString() === post._id.toString())
+            if(notificationIndex === -1)
+                await notificationUser.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } });
+            else {
+                await notificationUser.updateOne({ $pull: {"notifications": {meal_id: post._id} } });
+                await notificationUser.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } });
             }
 
             res.status(200).json({ message: "liked", notification: notificationData })
-
-            await notificationUser.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } })
 
         } else {
 
