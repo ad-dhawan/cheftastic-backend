@@ -7,7 +7,7 @@ const UserSchema = require('../model/user');
 const admin = require("firebase-admin");
 const crypto = require("crypto");
 
-function sendNotification(title, body, type, imageUrl, token) {
+function sendNotification(title, body, imageUrl, token) {
     try {
 
         const notification = admin.messaging().send({
@@ -195,17 +195,14 @@ router.put('/like/:id', async(req, res) => {
 })
 
 /** GET SPECIALS POSTS */
-router.get('/get_top', (req, res) => {
+router.get('/get_specials', (req, res) => {
     try{
         PostSchema.aggregate([
-            // { $unwind: "$likes" },
-            { $project: {
-                meal_name: "$meal_name",
-                likeCount: { $size: "$likes" },
-            }},
-            { $group: { _id: "$_id", posts: { $push: "$_id" } } },
-            { $sort: { "likeCount": -1 } },
-            { $limit: 5 },
+            {$unwind: "$likes"},
+            {$group: {_id: "$_id", likesCount: {$sum: 1}}},
+            {$sort: {likesCount: -1}},
+            {$limit: 5},
+            {$project: {_id: 1}}
           ], function(err, posts) {
               if(err) res.status(502).json({error: err.toString()})
               else res.status(200).json(posts)
