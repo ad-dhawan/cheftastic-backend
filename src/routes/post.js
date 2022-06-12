@@ -143,6 +143,7 @@ router.put('/like/:id', async(req, res) => {
 
             const notificationTitle = 'Woah!!';
             const notificationBody = 'People are liking your recipe ❤️'
+            const existingNotificationBody = `${post.likes.length + 1} peoples liked your recipe`
             
             await sendNotification(notificationTitle, notificationBody, "like", post.image_url, notificationUser.fcm_token);
 
@@ -157,16 +158,29 @@ router.put('/like/:id', async(req, res) => {
                 seen: false,
                 createdAt: new Date().toISOString()
             }
+
+            const existingNotificationData = {
+                _id: crypto.randomBytes(16).toString("hex"),
+                title: notificationTitle,
+                body: existingNotificationBody,
+                image_url: post.image_url,
+                meal_name: post.meal_name,
+                meal_id: post._id,
+                type: 'like',
+                seen: false,
+                createdAt: new Date().toISOString()
+            }
             
             const notificationIndex = await notificationUser.notifications.findIndex(item => item.meal_id.toString() === post._id.toString())
-            if(notificationIndex === -1)
+            if(notificationIndex === -1){
                 await notificationUser.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } });
+                res.status(200).json({ message: "liked", notification: notificationData })
+            }
             else {
                 await notificationUser.updateOne({ $pull: {"notifications": {meal_id: post._id} } });
-                await notificationUser.updateOne({ $push : { notifications: { $each: [notificationData], $position: 0 } } });
+                await notificationUser.updateOne({ $push : { notifications: { $each: [existingNotificationData], $position: 0 } } });
+                res.status(200).json({ message: "liked", notification: existingNotificationData })
             }
-
-            res.status(200).json({ message: "liked", notification: notificationData })
 
         } else {
 
