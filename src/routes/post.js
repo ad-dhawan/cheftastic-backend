@@ -1,11 +1,27 @@
 const express = require("express");
 const app = express();
 const router = require("express").Router();
-const multer = require('multer');
+const Multer = require('multer');
 const PostSchema = require('../model/post');
 const UserSchema = require('../model/user');
 const admin = require("firebase-admin");
 const crypto = require("crypto");
+const util = require('util')
+const {Storage} = require('@google-cloud/storage')
+const path = require("path")
+const dotenv = require("dotenv");
+// const uploadImage = require('../helpers')
+
+//GOOGLE CLOUD STORAGE
+const storage = new Storage({
+    keyFilename: path.join(__dirname, "../../cheftastic-2-df4d188bcb59.json"),
+    projectId: "cheftastic-2"
+});
+
+dotenv.config()
+const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
+
+const { format } = util
 
 function sendNotification(title, body, imageUrl, token) {
     try {
@@ -28,50 +44,62 @@ function sendNotification(title, body, imageUrl, token) {
     }
 }
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './uploads/posts');
+const multer = Multer({
+    storage: Multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
     },
-    filename: function(req, file, cb) {
-        cb(null, 'cheftastic' + '_' + file.originalname.replace(/ /g,"_"));
-    }
 });
 
-const upload = multer({ storage: storage })
+router.use(multer.single('image_url'));
 
 /** CREATE POST */
-router.post("/create", upload.single('image_url'), async (req, res) => {
+router.post("/create", async (req, res, next) => {
+    // const myFile = req.file
+    // const imageUrl = await uploadImage(myFile)
 
-    const user = await UserSchema.findOne({ _id: req.body.chef_id })
-    
-    const post = new PostSchema({
-        meal_name: req.body.meal_name,
-        image_url: `https://cheftastic2.herokuapp.com/${req.file.path}`,
-        ingredients: req.body.ingredients,
-        recipe: req.body.recipe,
-        cuisine: req.body.cuisine || null,
-        meal_type: req.body.meal_type,
-        meal_video_url: req.body.meal_video_url || null,
-        likes: [],
-        user_id: req.body.chef_id,
-        user_name: user.name,
-        user_avatar: user.user_avatar,
-        user_token: user.user_token
+    const blob = bucket.file(req.file.originalname.replace(/ /g, "_"))
+    const blobStream = blob.createWriteStream({
+        resumable: false
+    })
+
+    blobStream.on('error', err => {
+        next(err);
     });
 
-    try{
-        const newPost = await post.save();
-        
-        await user.updateOne({ $push : { recipes: {
-            _id: newPost._id,
-            meal_name: newPost.meal_name,
-            image_url: newPost.image_url
-        } } })
+    blobStream.on('finish', async () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = format(
+          `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+        );
 
-        res.status(200).json(newPost);
-    } catch(err) { 
-        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
-    }
+        const user = await UserSchema.findOne({ _id: req.body.chef_id })
+
+        const post = new PostSchema({
+            meal_name: req.body.meal_name,
+            image_url: publicUrl,
+            ingredients: req.body.ingredients,
+            recipe: req.body.recipe,
+            cuisine: req.body.cuisine || null,
+            meal_type: req.body.meal_type,
+            meal_video_url: req.body.meal_video_url || null,
+            likes: [],
+            user_id: req.body.chef_id,
+            user_name: user.name,
+            user_avatar: user.user_avatar,
+            user_token: user.user_token
+        });
+            
+        try{
+            const newPost = await post.save();
+            res.status(200).json(newPost);
+        } catch(err) { 
+            res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+        }
+
+      });
+    
+      blobStream.end(req.file.buffer);
 });
 
 /** GET ALL POSTS */
