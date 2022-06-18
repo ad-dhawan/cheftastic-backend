@@ -10,7 +10,6 @@ const util = require('util')
 const {Storage} = require('@google-cloud/storage')
 const path = require("path")
 const dotenv = require("dotenv");
-// const uploadImage = require('../helpers')
 
 //GOOGLE CLOUD STORAGE
 const storage = new Storage({
@@ -55,8 +54,6 @@ router.use(multer.single('image_url'));
 
 /** CREATE POST */
 router.post("/create", async (req, res, next) => {
-    // const myFile = req.file
-    // const imageUrl = await uploadImage(myFile)
 
     const blob = bucket.file(req.file.originalname.replace(/ /g, "_"))
     const blobStream = blob.createWriteStream({

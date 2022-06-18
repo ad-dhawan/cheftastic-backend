@@ -1,6 +1,19 @@
 const router = require("express").Router();
 const UserSchema = require('../model/user');
 const PostSchema = require('../model/post');
+const {Storage} = require('@google-cloud/storage')
+const dotenv = require("dotenv");
+const path = require("path");
+
+dotenv.config();
+
+//GOOGLE CLOUD STORAGE
+const storage = new Storage({
+    keyFilename: path.join(__dirname, "../../cheftastic-2-df4d188bcb59.json"),
+    projectId: "cheftastic-2"
+});
+
+const avatar_bucket = storage.bucket(process.env.GCLOUD_AVATAR_BUCKET)
 
 //REGISTER USER
 router.post("/register", async (req, res) => {
@@ -84,6 +97,17 @@ router.get('/get_notification/:id', async (req, res) => {
 
     } catch(err){
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+    }
+})
+
+/** GET DEFAULT USER AVATARS */
+router.get('/get_avatars', async (req, res) => {
+    try {
+        const [files] = await avatar_bucket.getFiles();
+        res.status(200).json(files)
+    }
+    catch(err){
+        console.log(err)
     }
 })
 
