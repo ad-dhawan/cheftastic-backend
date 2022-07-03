@@ -77,9 +77,11 @@ router.post("/create", async (req, res, next) => {
             image_url: publicUrl,
             ingredients: req.body.ingredients,
             recipe: req.body.recipe,
-            cuisine: req.body.cuisine || null,
             meal_type: req.body.meal_type,
             meal_video_url: req.body.meal_video_url || null,
+            meal_cooking_time: req.body.meal_cooking_time,
+            meal_difficulty: req.body.meal_difficulty,
+            meal_calories: req.body.meal_calories,
             likes: [],
             user_id: req.body.chef_id,
             user_name: user.name,
@@ -219,6 +221,28 @@ router.put('/like/:id', async(req, res) => {
     }
 })
 
+/** SAVE/UNSAVE POST */
+router.put('/save/:id', async(req, res) => {
+    try{
+        const post = await PostSchema.findOne({ _id: req.params.id })
+
+        if (!post.saves.includes(req.body.user_id)) {
+
+            await post.updateOne({ $push: {saves: req.body.user_id}})
+            res.status(200).json({ message: "saved", post })
+
+        } else {
+
+            await post.updateOne({ $pull: {saves: req.body.user_id }})
+            res.status(200).json({ message: "unsaved", post })
+
+        }
+
+    } catch(err) {
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+    }
+})
+
 /** GET SPECIALS POSTS */
 router.get('/get_specials', (req, res) => {
     try{
@@ -232,6 +256,23 @@ router.get('/get_specials', (req, res) => {
               if(err) res.status(502).json({error: err.toString()})
               else res.status(200).json(posts)
           })
+    } catch(err){
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+    }
+})
+
+/** SEARCH RECIPE */
+router.get('/search/:meal_name', (req, res) => {
+    try{
+        const query = { $text: { $search: `\`mex\`` } };
+        
+        const projection = {
+            meal_name: 1,
+        };
+        
+        const cursor = PostSchema.find(query).project(projection);
+        console.log(cursor)
+        res.status(200).json(cursor)
     } catch(err){
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }

@@ -20,7 +20,22 @@ router.post("/register", async (req, res) => {
 
     //CHECK USER EXISTENCE
     const userExist = await UserSchema.findOne({ email: req.body.email });
-    if (userExist) return res.status(409).json({status: 409, user: userExist});
+    if (userExist) {
+        const editedData = {
+            email: req.body.email,
+            name: req.body.name,
+            user_avatar: req.body.user_avatar,
+            fcm_token: req.body.fcm_token,
+            id_token: req.body.id_token,
+        };
+
+        try{
+            await UserSchema.updateOne({email: req.body.email}, editedData)
+            res.status(409).json(userExist);
+        } catch(err) { 
+            res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+        }
+    }
     else {
         //CREATE NEW USER
         const user = new UserSchema({
