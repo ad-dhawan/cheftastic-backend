@@ -10,6 +10,7 @@ const util = require('util')
 const {Storage} = require('@google-cloud/storage')
 const path = require("path")
 const dotenv = require("dotenv");
+const { isEmpty } = require("lodash");
 
 //GOOGLE CLOUD STORAGE
 const storage = new Storage({
@@ -261,18 +262,13 @@ router.get('/get_specials', (req, res) => {
     }
 })
 
-/** SEARCH RECIPE */
-router.get('/search/:meal_name', (req, res) => {
+/** SEARCH */
+router.get('/search', async (req, res) => {
     try{
-        const query = { $text: { $search: `\`mex\`` } };
-        
-        const projection = {
-            meal_name: 1,
-        };
-        
-        const cursor = PostSchema.find(query).project(projection);
-        console.log(cursor)
-        res.status(200).json(cursor)
+        const recipe_data = await PostSchema.find( { "meal_name": { $regex: new RegExp(req.query.search_text, 'i') } } )
+        const user_data = await UserSchema.find( { "name": { $regex: new RegExp(req.query.search_text, 'i') } } )
+
+        await res.status(200).json({recipes: recipe_data, users: user_data})
     } catch(err){
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
