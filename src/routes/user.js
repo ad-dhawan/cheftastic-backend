@@ -120,7 +120,7 @@ router.get('/get_all', (req, res) => {
 router.get('/get/:id', async (req, res) => {
     try{
         const user = await UserSchema.findOne({ _id: req.params.id })
-        res.status(200).json({  _id: user._id, email: user.email, name: user.name, recipes: user.recipes.length, user_avatar: user.user_avatar  })
+        res.status(200).json({  _id: user._id, email: user.email, name: user.name, user_avatar: user.user_avatar, saves: user.saves  })
     } catch(err) {
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
@@ -171,6 +171,41 @@ router.get('/get_avatars', async (req, res) => {
     }
     catch(err){
         console.log(err)
+    }
+})
+
+/** SAVE POST */
+router.post('/save_post/:id', async (req, res) => {
+    try{
+        const user = await UserSchema.findOne({ _id: req.body.user_id })
+        const post = await PostSchema.findOne({_id: req.params.id})
+
+        const savedData = {
+            _id: post._id,
+            image_url: post.image_url
+        }
+
+
+        if (req.body.action === 'save') {
+            await user.updateOne({ $push : { saves: savedData } });
+            res.status(200).json({message: 'saved', savedData});
+        } else if(req.body.action === 'unsave') {
+            await user.updateOne({ $pull : { saves : savedData } }, { multi : true });
+            res.status(200).json({ message: "unsaved", savedData });
+        }
+
+    } catch(err) {
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+    }
+})
+
+/** GET SAVED POSTS */
+router.get('/get_saved/:id', async(req, res) => {
+    try{
+        const user = await UserSchema.findOne({ _id: req.params.id });
+        res.status(200).json(user.saves)
+    } catch(err) {
+        res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
 })
 
