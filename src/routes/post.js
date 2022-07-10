@@ -40,13 +40,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 
 /** CREATE POST */
-router.post("/create", upload.single('meal_image'), async (req, res) => {
+router.post("/create", upload.single('image_url'), async (req, res) => {
 
     const user = await UserSchema.findOne({ _id: req.body.chef_id })
     
     const post = new PostSchema({
         meal_name: req.body.meal_name,
-        // image_url: req.body.meal_image,
+        image_url: `https://cheftastic2.herokuapp.com/${req.file.path}`,
         ingredients: req.body.ingredients,
         recipe: req.body.recipe,
         cuisine: req.body.cuisine || null,
@@ -148,5 +148,7 @@ router.put('/like/:id', async(req, res) => {
         res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
     }
 })
+
+/** GET TOP LIKED POSTS */
 
 module.exports = router;
