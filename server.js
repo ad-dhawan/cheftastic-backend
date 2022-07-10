@@ -36,9 +36,6 @@ mongoose.connect(process.env.DATABASE_URL, {
 .catch((err) => console.log(err));
 
 //MIDDLEWARE
-// app.use(express.urlencoded({
-//   extended: true
-// }));
 app.use(express.json());
 
 //ROUTE MIDDLEWARE
@@ -46,8 +43,6 @@ app.use("/api/auth", authRoute);
 app.use("/api/post", postRoute);
 app.use('/images', express.static('images'));
 app.use('/uploads', express.static('uploads'));
-
-// exports.app = functions.https.onRequest(app);
 
 app.listen(process.env.PORT || 3000, function(){
   console.log(`Server listening on port ${this.address().port} in ${app.settings.env} mode`);

@@ -7,6 +7,7 @@ const UserSchema = mongoose.Schema({
     fcm_token: String,
     id_token: String,
     notifications: [],
+    saves: []
 },{timestamps:true});
 
 module.exports = mongoose.model('user', UserSchema);

@@ -11,7 +11,6 @@ const PostSchema = mongoose.Schema({
     meal_difficulty: String,
     meal_calories: String,
     likes: [],
-    saves: [],
     user_id: String,
     user_name: String,
     user_avatar: String,

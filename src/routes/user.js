@@ -1,11 +1,11 @@
 const router = require("express").Router();
 const UserSchema = require('../model/user');
 const PostSchema = require('../model/post');
+const Multer = require('multer');
 const {Storage} = require('@google-cloud/storage')
 const dotenv = require("dotenv");
 const path = require("path");
-
-dotenv.config();
+const util = require('util')
 
 //GOOGLE CLOUD STORAGE
 const storage = new Storage({
@@ -13,7 +13,21 @@ const storage = new Storage({
     projectId: "cheftastic-2"
 });
 
+dotenv.config();
+const bucket = storage.bucket(process.env.GCLOUD_USERS_BUCKET);
 const avatar_bucket = storage.bucket(process.env.GCLOUD_AVATAR_BUCKET)
+
+const { format } = util
+
+
+const multer = Multer({
+    storage: Multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
+    },
+});
+
+router.use(multer.single('user_avatar'));
 
 //REGISTER USER
 router.post("/register", async (req, res) => {
@@ -45,6 +59,7 @@ router.post("/register", async (req, res) => {
             fcm_token: req.body.fcm_token,
             id_token: req.body.id_token,
             notifications: [],
+            saves: []
         });
 
         try{
@@ -54,6 +69,39 @@ router.post("/register", async (req, res) => {
             res.status(500).json({ status: 500, message: "Internal Server Error", error: err });
         }
     }
+});
+
+//EDIT USER
+router.put("/edit", async (req, res, next) => {
+
+    const blob = bucket.file(req.file.originalname.replace(/ /g, "_"))
+    const blobStream = blob.createWriteStream({
+        resumable: false
+    })
+
+    blobStream.on('error', err => {
+        next(err);
+    });
+
+    blobStream.on('finish', async () => {
+        const publicUrl = format(
+          `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+        );
+
+        try{
+            const newData = {
+                name: req.body.name,
+                user_avatar: publicUrl
+            }
+            await UserSchema.updateOne({_id: req.body.user_id}, newData)
+            res.status(200).json(newData);
+        } catch(err) { 
+            res.status(500).json({ status: 500, message: "Internal Server Error", error: err.toString() });
+        }
+
+      });
+    
+      blobStream.end(req.file.buffer);
 });
 
 /** GET ALL USERS */
