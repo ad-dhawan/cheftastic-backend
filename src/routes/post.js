@@ -25,7 +25,6 @@ const { format } = util
 
 function sendNotification(title, body, imageUrl, token) {
     try {
-
         const notification = admin.messaging().send({
             notification: {
                 title,
@@ -173,7 +172,7 @@ router.put('/like/:id', async(req, res) => {
             const notificationBody = 'People are liking your recipe ❤️'
             const existingNotificationBody = `${post.likes.length + 1} peoples liked your recipe`
             
-            await sendNotification(notificationTitle, notificationBody, "like", post.image_url, notificationUser.fcm_token);
+            await sendNotification(notificationTitle, notificationBody, post.image_url, notificationUser.fcm_token);
 
             const notificationData = {
                 _id: crypto.randomBytes(16).toString("hex"),
