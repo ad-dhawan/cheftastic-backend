@@ -179,19 +179,13 @@ router.post('/save_post/:id', async (req, res) => {
     try{
         const user = await UserSchema.findOne({ _id: req.body.user_id })
         const post = await PostSchema.findOne({_id: req.params.id})
-
-        const savedData = {
-            _id: post._id,
-            image_url: post.image_url
-        }
-
-
+        
         if (req.body.action === 'save') {
-            await user.updateOne({ $push : { saves: savedData } });
-            res.status(200).json({message: 'saved', savedData});
+            await user.updateOne({ $push : { saves: post } });
+            res.status(200).json({message: 'saved', post});
         } else if(req.body.action === 'unsave') {
-            await user.updateOne({ $pull : { saves : savedData } }, { multi : true });
-            res.status(200).json({ message: "unsaved", savedData });
+            await user.updateOne({ $pull : { saves : post } }, { multi : true });
+            res.status(200).json({ message: "unsaved", post });
         }
 
     } catch(err) {
