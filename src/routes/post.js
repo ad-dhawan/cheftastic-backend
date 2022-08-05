@@ -520,7 +520,7 @@ router.get('/:id', async (req, res) => {
         <section class="main-contanier">
             <!--Img-->
             <section class="content-img">
-                <img src="post.image_url" alt="">
+                <img src="${post.image_url}" alt="">
                 <a href="${post.meal_video_url}"><i class="btn fa-regular fa-circle-play"></i></a>
             </section>
             <!--Info-->
@@ -530,7 +530,7 @@ router.get('/:id', async (req, res) => {
                 </h2>
                 <section class="info-item">
                     <div class="avatar">
-                        <img src="post.user_avatar" alt="">
+                        <img src="${post.user_avatar}" alt="">
                         
                     </div>
                     <section class="creater">
