@@ -1,4 +1,4 @@
 runtime: nodejs16
 instance_class: F2
 
-service: default
+service: app-staging

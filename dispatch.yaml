@@ -1,0 +1,7 @@
+dispatch:
+- url: "staging.cheftastic-2.com/*"
+  service: app-staging
+- url: "app.cheftastic-2.com/*"
+  service: default
+- url: "*/.*"
+  service: default
