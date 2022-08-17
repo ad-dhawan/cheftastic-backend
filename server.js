@@ -40,6 +40,7 @@ app.use(express.json());
 //ROUTE MIDDLEWARE
 app.use("/api/auth", authRoute);
 app.use("/api/post", postRoute);
+app.use('/about.html', express.static('about.html'));
 app.use('/privacy.html', express.static('privacy.html'));
 app.use('/terms.html', express.static('terms.html'));
 

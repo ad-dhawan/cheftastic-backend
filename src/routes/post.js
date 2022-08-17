@@ -1,5 +1,3 @@
-const express = require("express");
-const app = express();
 const router = require("express").Router();
 const Multer = require('multer');
 const PostSchema = require('../model/post');
@@ -10,7 +8,6 @@ const util = require('util')
 const {Storage} = require('@google-cloud/storage')
 const path = require("path")
 const dotenv = require("dotenv");
-const { isEmpty } = require("lodash");
 
 //GOOGLE CLOUD STORAGE
 const storage = new Storage({
